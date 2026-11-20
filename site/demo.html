@@ -1,0 +1,48 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light dark"><title>Customer demo | Gerard Recinto</title>
+<meta name="description" content="A simulated customer visit run against the real Joltrin server: scoping, integration, dry run, deploy, a failure and the recovery."><link rel="stylesheet" href="style.css"></head><body>
+<!--NAV-->
+<main id="main" class="wrap">
+<h1>Customer demo: keep an agent away from production drops</h1>
+<p class="lede">A made-up team wants its AI maintenance agent to stop dropping production tables before a snapshot is verified. I take that from the discovery call to a deploy, break it on purpose, and recover.</p>
+<div class="note"><p><span class="tag sim">Simulated</span> The team, their requirements and their agent traces are invented. See <a href="https://github.com/gerardrecinto/fde-portfolio/blob/main/demo/customer/requirements.md">requirements.md</a> and <a href="https://github.com/gerardrecinto/fde-portfolio/blob/main/demo/customer/traces.json">traces.json</a>.</p>
+<p><span class="tag real">Measured</span> Every other line below is output from the real <code>sop-mcp-server</code>, built from Joltrin commit <a href="https://github.com/SharedCode/joltrin/commit/c994945ffe148a1936168e03db1a40edf1e8ae4d"><code>c994945</code></a>. This page is rebuilt from a fresh run on every deploy.</p></div>
+
+<h2>The visit in eight steps</h2>
+<ol class="steps">
+<li><strong>Discovery.</strong> Five requirements from the call. The one that shapes the rollout: the nightly staging drill drops a table with no snapshot and must keep working.</li>
+<li><strong>Integration.</strong> I write their existing step names into a runbook so their agent code does not change. My first draft misspells one state. The server refuses to load it because a step could never run.</li>
+<li><strong>Dry run.</strong> Observe mode replays 14 traces, 55 steps, and blocks nothing. It reports 6 steps that would have been blocked. Three are real mistakes. Three are the staging drill, a false positive.</li>
+<li><strong>Fix.</strong> The staging drill gets its own workflow. The agent change is one config line on their side. A second replay shows only the 3 real findings.</li>
+<li><strong>Deploy.</strong> Enforce mode over HTTP with a bearer token, a decision log and Prometheus metrics. A wrong token gets 401. The agent's first drop is blocked and the reply names what to run first.</li>
+<li><strong>Verify.</strong> The decision log and the metrics counter agree: 1 blocked, 5 allowed.</li>
+<li><strong>Failure.</strong> The server restarts in the middle of a run. State is in memory, so the next drop is blocked even though the steps were done.</li>
+<li><strong>Recovery.</strong> The agent replays the steps the block named and the drop runs. The rollback for enforcement itself is a restart in observe mode, and the log records it.</li>
+</ol>
+
+<h2>Real output</h2>
+<pre><code>{{DEMO_OUTPUT}}</code></pre>
+
+<h2>Run it yourself</h2>
+<pre><code>git clone https://github.com/gerardrecinto/fde-portfolio && cd fde-portfolio
+bash demo/run.sh</code></pre>
+<p>Needs Go 1.21 or newer and Python 3.9 or newer. Go downloads the version Joltrin needs by itself. The first run builds the server, which takes a couple of minutes. Then it takes seconds. If you already have a <code>sop-mcp-server</code>, set <code>SOP_MCP_SERVER=/path/to/it</code>. The script exits 1 and says which check failed if anything is off, and ends with <code>ALL 15 CHECKS PASSED</code> when it works.</p>
+
+<h2>How to verify success</h2>
+<ul>
+<li>Exit code 0 and the last line <code>ALL 15 CHECKS PASSED</code>.</li>
+<li>Step 5 rejects a wrong token with 401 and blocks the first drop with a reason.</li>
+<li>Step 6 compares two independent records: the JSON decision log and the <code>joltrin_steps_total</code> metric.</li>
+<li>Step 7 shows the failure is real: the same call that succeeded before the restart is blocked after it.</li>
+<li>Read the checks in <a href="https://github.com/gerardrecinto/fde-portfolio/blob/main/demo/fde_demo.py">demo/fde_demo.py</a>. They assert on the server's replies, not on strings I print.</li>
+</ul>
+
+<h2 id="what-not">What this does not show</h2>
+<ul>
+<li><strong>No cluster.</strong> This runs the barrier as a local process. The Kubernetes admission gate is covered by Joltrin's own <a href="https://github.com/SharedCode/joltrin/blob/master/docs/KUBERNETES_GATE.md">gate doc</a> and <code>scripts/k8s-gate-e2e.sh</code>, not by this demo.</li>
+<li><strong>Pinned to a commit, not a release.</strong> Observe mode is on Joltrin's master branch but not in release v5.12.1. A customer should get a tagged release, so that is a gap to close before a real engagement.</li>
+<li><strong>Single tenant, one replica, state in memory.</strong> That is how Joltrin documents it. A restart makes the barrier stricter, never looser, which step 7 shows.</li>
+<li><strong>The agent is a script.</strong> It sends the steps in the traces. It is not an LLM, so this tests the barrier and the rollout, not agent behavior.</li>
+</ul>
+</main>
+<!--FOOT-->
+</body></html>

@@ -1,0 +1,42 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light dark"><title>Gerard Recinto, forward deployed engineer</title>
+<meta name="description" content="Infrastructure and developer tooling forward deployed engineer. Public projects, a customer demo you can run, case studies and interview answers with links to the code."><link rel="stylesheet" href="style.css"></head><body>
+<!--NAV-->
+<main id="main" class="wrap">
+<h1>I get infrastructure tools working inside other people's environments.</h1>
+<p class="lede">I'm a DevOps and platform engineer going after forward deployed roles in infrastructure and developer tooling. My habit is the same each time: find out what the customer needs, wire the tool into the stack they already run, and make the first rollout easy to undo.</p>
+<div class="btns"><a class="btn primary" href="demo.html">Run the customer demo</a><a class="btn" href="case-studies.html">Read the case studies</a><a class="btn" href="interview.html">Interview Q&amp;A</a></div>
+
+<h2>What I shipped, and who it helps</h2>
+<div class="grid">
+<article class="card"><span class="tag real">Open source</span><span class="tag">MIT</span>
+<h3>Joltrin</h3>
+<p>Helps teams that give an AI agent real access to a database or a cluster. It refuses a risky step, like dropping a production database, until the steps before it are recorded, and it tells the agent what to run first.</p>
+<p>I'm a maintainer. The verification barrier side is mine: the MCP and A2A servers, the runbook loader, the Kubernetes admission gate, observe mode and the install path. The storage engine underneath was written by another maintainer.</p>
+<pre><code>go run github.com/sharedcode/joltrin/v5/examples/verify_barrier@latest</code></pre>
+<ul class="links"><li><a href="https://github.com/SharedCode/joltrin">Repo</a></li><li><a href="https://joltrinhq.com/agents/">Live demo in the browser</a></li><li><a href="case-studies.html#joltrin">Case study</a></li></ul></article>
+<article class="card"><span class="tag real">Personal project</span><span class="tag">MIT</span>
+<h3>meshdoctor</h3>
+<p>Helps platform teams that review Istio YAML. It finds the mistakes that turn into 503s, such as route weights that do not add up to 100 or a subset nobody defined, before the change is applied. It runs in CI or in a browser tab.</p>
+<p>Solo project. Go linter with a WebAssembly build, a Jenkins gate, runbooks for the 503 cases and a kind-based end to end test.</p>
+<pre><code>git clone https://github.com/gerardrecinto/meshdoctor && cd meshdoctor
+go run ./cmd/meshdoctor testdata/bad.yaml</code></pre>
+<ul class="links"><li><a href="https://github.com/gerardrecinto/meshdoctor">Repo</a></li><li><a href="https://gerardrecinto.github.io/meshdoctor/">Live demo in the browser</a></li><li><a href="case-studies.html#meshdoctor">Case study</a></li></ul></article>
+</div>
+
+<h2>One customer visit, start to finish</h2>
+<p>The demo takes a made-up team that wants an AI agent kept away from production drops. It covers scoping, wiring their step names into a runbook, a dry run on their traces, a deploy, a restart that breaks a run, and recovery. It runs the real Joltrin server from a pinned commit and checks its own results.</p>
+<pre><code>git clone https://github.com/gerardrecinto/fde-portfolio && cd fde-portfolio
+bash demo/run.sh</code></pre>
+<p>Needs Go and Python 3. The first run builds the server and takes a couple of minutes. After that it takes seconds. <a href="demo.html">See the output and how to verify it.</a></p>
+
+<h2>What is real and what is simulated</h2>
+<div class="note"><p><span class="tag real">Real</span> The code, the commits and pull requests I link, the test and CI results, and everything the demo's server prints.</p>
+<p><span class="tag sim">Simulated</span> The example team and its agent traces in the demo. I invented them to show a visit. They are not a customer and not data from any system.</p>
+<p><strong>Not claimed:</strong> I have no paying customer for either project and no usage numbers to show. Joltrin is young. meshdoctor has not run against a customer's cluster.</p></div>
+
+<h2>Background</h2>
+<p>I spent about five years in DevOps and platform engineering at Qualcomm: Jenkins shared libraries, Terraform modules for EKS, and CI/CD for internal teams. I won a Qualcomm Impact Award in June 2023. That work was internal, so none of its code is here and nothing on this site is Qualcomm code.</p>
+<p>Smaller companions: <a href="https://github.com/gerardrecinto/fde-field-kit">fde-field-kit</a> (preflight, validate, staged rollout with rollback, handoff note) and <a href="https://github.com/gerardrecinto">my other repos</a>. Several are labs and say so in their READMEs.</p>
+</main>
+<!--FOOT-->
+</body></html>

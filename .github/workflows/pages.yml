@@ -1,0 +1,24 @@
+name: pages
+on:
+  push: {branches: [main], paths: [site/**, demo/**, scripts/**, .github/workflows/pages.yml]}
+  workflow_dispatch:
+permissions: {contents: read, pages: write, id-token: write}
+concurrency: {group: pages, cancel-in-progress: true}
+jobs:
+  deploy:
+    runs-on: ubuntu-24.04
+    environment: {name: github-pages, url: "${{ steps.d.outputs.page_url }}"}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with: {go-version: "1.23", cache: false}
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.13"}
+      - name: Run the customer demo and keep the output
+        run: bash demo/run.sh | tee demo/output.txt
+      - run: python3 scripts/build_site.py demo/output.txt
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with: {path: _site}
+      - id: d
+        uses: actions/deploy-pages@v4

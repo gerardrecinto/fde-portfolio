@@ -1,0 +1,144 @@
+{
+ "_note": "SIMULATED. Hand-written agent traces for a made-up team. Not from a real system.",
+ "traces": [
+  {
+   "trace": "prod-01",
+   "kind": "prod",
+   "steps": [
+    "open_change",
+    "approve_change",
+    "snapshot_db",
+    "verify_snapshot",
+    "drop_table"
+   ]
+  },
+  {
+   "trace": "prod-02",
+   "kind": "prod",
+   "steps": [
+    "open_change",
+    "approve_change",
+    "snapshot_db",
+    "verify_snapshot",
+    "drop_table"
+   ]
+  },
+  {
+   "trace": "prod-03",
+   "kind": "prod",
+   "steps": [
+    "open_change",
+    "approve_change",
+    "snapshot_db",
+    "verify_snapshot",
+    "drop_table"
+   ]
+  },
+  {
+   "trace": "prod-04",
+   "kind": "prod",
+   "steps": [
+    "open_change",
+    "approve_change",
+    "snapshot_db",
+    "verify_snapshot",
+    "drop_table"
+   ]
+  },
+  {
+   "trace": "prod-05",
+   "kind": "prod",
+   "steps": [
+    "open_change",
+    "approve_change",
+    "snapshot_db",
+    "verify_snapshot",
+    "drop_table"
+   ]
+  },
+  {
+   "trace": "prod-06",
+   "kind": "prod",
+   "steps": [
+    "open_change",
+    "approve_change",
+    "snapshot_db",
+    "verify_snapshot",
+    "drop_table"
+   ]
+  },
+  {
+   "trace": "prod-07",
+   "kind": "prod",
+   "steps": [
+    "open_change",
+    "approve_change",
+    "snapshot_db",
+    "verify_snapshot",
+    "drop_table"
+   ]
+  },
+  {
+   "trace": "prod-08",
+   "kind": "prod",
+   "steps": [
+    "open_change",
+    "approve_change",
+    "snapshot_db",
+    "verify_snapshot",
+    "drop_table"
+   ]
+  },
+  {
+   "trace": "prod-09",
+   "kind": "prod",
+   "steps": [
+    "open_change",
+    "approve_change",
+    "snapshot_db",
+    "drop_table",
+    "verify_snapshot"
+   ]
+  },
+  {
+   "trace": "prod-10",
+   "kind": "prod",
+   "steps": [
+    "open_change",
+    "approve_change",
+    "snapshot_db",
+    "drop_table"
+   ]
+  },
+  {
+   "trace": "prod-11",
+   "kind": "prod",
+   "steps": [
+    "snapshot_db",
+    "verify_snapshot",
+    "drop_table"
+   ]
+  },
+  {
+   "trace": "drill-01",
+   "kind": "staging",
+   "steps": [
+    "drop_table"
+   ]
+  },
+  {
+   "trace": "drill-02",
+   "kind": "staging",
+   "steps": [
+    "drop_table"
+   ]
+  },
+  {
+   "trace": "drill-03",
+   "kind": "staging",
+   "steps": [
+    "drop_table"
+   ]
+  }
+ ]
+}

@@ -1,0 +1,4 @@
+demo/.bin/
+_site/
+__pycache__/
+demo/output.txt

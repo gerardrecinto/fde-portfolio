@@ -1,0 +1,73 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light dark"><title>Case studies | Gerard Recinto</title>
+<meta name="description" content="Two case studies, Joltrin and meshdoctor: the user problem, constraints, what I built, a tradeoff, and how I checked it, with links to the code."><link rel="stylesheet" href="style.css"></head><body>
+<!--NAV-->
+<main id="main" class="wrap">
+<h1>Case studies</h1>
+<p class="lede">Two projects. Each one says what I built, one tradeoff I would defend, and how I know it works. Every claim links to code, a pull request or a document.</p>
+
+<section id="joltrin" aria-labelledby="j-h">
+<h2 id="j-h">Joltrin: stop an AI agent from running a risky step too early</h2>
+<p><span class="tag real">Open source</span><span class="tag">I am a maintainer, not the sole author</span></p>
+<p><strong>Who owns what.</strong> The repo is in the SharedCode organization. I have admin rights, <a href="https://github.com/SharedCode/joltrin/pulls?q=is%3Apr+is%3Amerged+author%3Agerardrecinto">407 of its 690 merged pull requests</a> are mine, and the commits under my name cover the verification barrier: <a href="https://github.com/SharedCode/joltrin/tree/c994945ffe148a1936168e03db1a40edf1e8ae4d/verify"><code>verify</code></a>, <a href="https://github.com/SharedCode/joltrin/tree/c994945ffe148a1936168e03db1a40edf1e8ae4d/tools/mcpserver">the MCP server</a>, <a href="https://github.com/SharedCode/joltrin/tree/c994945ffe148a1936168e03db1a40edf1e8ae4d/tools/runbookstore">the runbook loader</a>, <a href="https://github.com/SharedCode/joltrin/tree/c994945ffe148a1936168e03db1a40edf1e8ae4d/tools/k8sgate">the Kubernetes gate</a> and the docs for them. The B-tree storage engine underneath was written by Gerardo Recinto, who has most of the repo's history. I did not write the engine and I do not claim it.</p>
+
+<h3>User problem</h3>
+<p>An agent can propose a destructive action and report success from its own context. If the same agent also judges the action safe, both judgments fail for the same reason. The check has to sit outside the agent and confirm that the earlier steps, like a validated backup, were recorded.</p>
+
+<h3>Constraints</h3>
+<ul>
+<li>Someone should be able to try it without installing Go or running a server, so there is a <a href="https://joltrinhq.com/agents/">browser demo</a> and a no-Go installer. I moved those to the front of the README and the homepage: <a href="https://github.com/SharedCode/joltrin/pull/737">#737</a>, <a href="https://github.com/SharedCode/joltrin/pull/723">#723</a>, <a href="https://github.com/SharedCode/joltrin/pull/729">#729</a>.</li>
+<li>Teams already run agents and pipelines. Turning on a blocker against live traffic is risky, so there has to be a way to see its effect first.</li>
+<li>The same check has to work in front of <code>kubectl delete</code>, under a cluster's own security rules.</li>
+</ul>
+
+<h3>What I built</h3>
+<ul>
+<li>Observe mode, <code>SOP_MODE=observe</code>: a dry run that runs everything and reports what would have been blocked. <a href="https://github.com/SharedCode/joltrin/pull/762">#762</a>, <a href="https://github.com/SharedCode/joltrin/blob/c994945ffe148a1936168e03db1a40edf1e8ae4d/tools/mcpserver/observe.go">code</a>, <a href="https://github.com/SharedCode/joltrin/blob/c994945ffe148a1936168e03db1a40edf1e8ae4d/docs/OPERATIONS.md">docs</a>. The <a href="demo.html">demo</a> uses it.</li>
+<li>The Kubernetes admission gate: a webhook that refuses a delete until the runbook's earlier steps are recorded. Metrics, audit log and a deny-egress network policy in <a href="https://github.com/SharedCode/joltrin/pull/544">#544</a>. Updates that strip the gate label or trace id are refused in <a href="https://github.com/SharedCode/joltrin/pull/666">#666</a>. A read-only root filesystem in <a href="https://github.com/SharedCode/joltrin/pull/766">#766</a>. Doc: <a href="https://github.com/SharedCode/joltrin/blob/c994945ffe148a1936168e03db1a40edf1e8ae4d/docs/KUBERNETES_GATE.md">KUBERNETES_GATE.md</a>.</li>
+<li>A script that reproduces the gate checks on a real kind cluster: <a href="https://github.com/SharedCode/joltrin/pull/682">#682</a>, <a href="https://github.com/SharedCode/joltrin/blob/c994945ffe148a1936168e03db1a40edf1e8ae4d/scripts/k8s-gate-e2e.sh">script</a>.</li>
+<li>Integration examples for a customer's stack: a <a href="https://github.com/SharedCode/joltrin/pull/764">Spring Boot agent service</a> and a <a href="https://github.com/SharedCode/joltrin/pull/720">gate command that remembers allowed steps</a>.</li>
+<li>Honest docs: a <a href="https://github.com/SharedCode/joltrin/pull/715">comparison</a> with Temporal and policy engines that says where Joltrin is weaker, and a <a href="https://github.com/SharedCode/joltrin/pull/756">security controls page</a> with the status and limits of each control.</li>
+</ul>
+
+<h3>A tradeoff I would defend</h3>
+<p>The gate fails closed. I chose webhook <code>failurePolicy: Fail</code> over <code>Ignore</code>, so an outage cannot be used to skip the check. The cost is that a protected object cannot be deleted or updated while the gate is down. I limited the damage with a label selector, so only objects labeled <code>joltrin.dev/gate</code> are affected, and the doc says plainly that state is in memory on one replica. I would switch to fail-open only for a customer who values availability of those objects over the guarantee and has another control in front. It is a design choice recorded in <a href="https://github.com/SharedCode/joltrin/blob/c994945ffe148a1936168e03db1a40edf1e8ae4d/docs/KUBERNETES_GATE.md">the doc's "what it does not do" section</a>. No customer asked for it.</p>
+
+<h3>Outcome and how I checked it</h3>
+<ul>
+<li>The gate was exercised against a real API server on kind with cert-manager, including a denied delete, a wrong-token 401, a 409 on out-of-order steps, and a delete that succeeds once the steps are recorded. The doc records this. I ran <code>scripts/k8s-gate-e2e.sh</code> on the pinned commit on 20 Nov 2026 and it ended <code>14 passed, 0 failed</code>. It is not part of Joltrin's CI.</li>
+<li>The <a href="demo.html">customer demo</a> drives the real server through observe, enforce, a restart and a rollback, with 15 checks.</li>
+<li>The README quickstart runs as written. I ran <code>go run .../examples/verify_barrier@latest</code> from a clean directory and it printed the blocked drop, the backup, then the allowed drop.</li>
+<li>Adoption: no usage numbers. I can show the install path, the browser demo and the first-run copy I changed. I cannot show who uses it.</li>
+</ul>
+</section>
+
+<section id="meshdoctor" aria-labelledby="m-h">
+<h2 id="m-h">meshdoctor: find the Istio mistakes that become 503s before you apply them</h2>
+<p><span class="tag real">Personal project</span><span class="tag">Solo, lab scale</span></p>
+<h3>User problem</h3>
+<p>A platform team reviews Istio YAML by eye. Route weights that add up to 140, a subset used but never defined, or a client with TLS disabled against a strict namespace all look fine in review and show up as 503s after the apply.</p>
+<h3>Constraints</h3>
+<ul>
+<li>It has to run in CI with no cluster access and no credentials, because that is where a platform team can gate a pull request.</li>
+<li>A reviewer who does not have Go should be able to paste YAML into a page and see the findings, so there is a <a href="https://gerardrecinto.github.io/meshdoctor/">WebAssembly build</a>.</li>
+<li>Every finding needs a fix line, or the on-call engineer is back to reading Envoy response flags.</li>
+</ul>
+<h3>What I built</h3>
+<ul>
+<li>A Go linter with 11 rules and three output formats, one of which is GitHub annotations for the pull request diff. <a href="https://github.com/gerardrecinto/meshdoctor/blob/main/internal/lint/rules.go">rules</a>.</li>
+<li>A Jenkins shared-library step, <a href="https://github.com/gerardrecinto/meshdoctor/blob/main/jenkins/vars/meshGate.groovy"><code>meshGate</code></a>, so the lint is one line in a pipeline.</li>
+<li>Three runbooks for what happens after a 503: <a href="https://github.com/gerardrecinto/meshdoctor/blob/main/docs/runbooks/503-response-flags.md">response flags</a>, <a href="https://github.com/gerardrecinto/meshdoctor/blob/main/docs/runbooks/canary-rollback.md">canary rollback</a> and <a href="https://github.com/gerardrecinto/meshdoctor/blob/main/docs/runbooks/sidecar-not-injected.md">missing sidecar</a>.</li>
+<li>An <a href="https://github.com/gerardrecinto/meshdoctor/blob/main/scripts/e2e.sh">end to end script</a> that applies the manifests to a kind cluster with a Java checkout service that can fail on demand.</li>
+</ul>
+<h3>A tradeoff I would defend</h3>
+<p>The linter reads the files you give it and does not query the cluster. That lets it run before an apply with no credentials, which is where it is useful. It gives up the ability to see live state, so a rule that needs another resource only warns when that resource is not in the files. If a customer's real problem were drift between Git and the cluster, I would add a cluster-aware mode instead of pushing more rules into the file linter.</p>
+<h3>Outcome and how I checked it</h3>
+<ul>
+<li>From a clean clone, <code>go test ./...</code> passes, <code>testdata/bad.yaml</code> reports 4 errors and 9 warnings and exits 1, and <code>testdata/good.yaml</code> is clean and exits 0. I ran these for this page.</li>
+<li>The repo's <a href="https://github.com/gerardrecinto/meshdoctor/actions">CI</a> runs the tests and the kind end to end job. I did not rerun the end to end job for this page.</li>
+<li>Limits the README states: the Terraform was validated but never applied to an AWS account, and the Jenkinsfile has not run on a build agent. It has no users I can point to.</li>
+</ul>
+</section>
+</main>
+<!--FOOT-->
+</body></html>

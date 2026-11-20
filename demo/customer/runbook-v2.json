@@ -1,0 +1,20 @@
+{"workflows": {
+  "db-maintenance": {
+    "steps": [
+      {"id": "open_change",     "establishes": ["change_open"]},
+      {"id": "approve_change",  "requires": ["change_open"], "establishes": ["change_approved"]},
+      {"id": "snapshot_db",     "establishes": ["snapshot_taken"]},
+      {"id": "verify_snapshot", "requires": ["snapshot_taken"], "establishes": ["snapshot_verified"]},
+      {"id": "drop_table",      "requires": ["snapshot_verified", "change_approved"], "establishes": ["table_dropped"]}
+    ],
+    "safety": [
+      {"name": "no-drop-without-verified-snapshot", "forbidden": "table_dropped", "requires": "snapshot_verified"},
+      {"name": "no-drop-without-approval",          "forbidden": "table_dropped", "requires": "change_approved"}
+    ]
+  },
+  "staging-drill": {
+    "steps": [
+      {"id": "drop_table", "establishes": ["staging_table_dropped"]}
+    ]
+  }
+}}
