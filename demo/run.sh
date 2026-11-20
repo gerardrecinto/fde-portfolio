@@ -6,7 +6,7 @@ set -euo pipefail
 cd "$(dirname "$0")"
 # shellcheck source=versions.env
 . ./versions.env
-BIN="${SOP_MCP_SERVER:-.bin/sop-mcp-server}"
+BIN="${SOP_MCP_SERVER:-$PWD/.bin/sop-mcp-server}"
 if [ ! -x "$BIN" ]; then
   echo "building sop-mcp-server at ${JOLTRIN_REF:0:7} (first run only)..." >&2
   GOBIN="$PWD/.bin" go install "github.com/sharedcode/joltrin/v5/cmd/sop-mcp-server@${JOLTRIN_REF}"

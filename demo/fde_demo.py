@@ -7,7 +7,7 @@ Exits 1 if any check fails.
 import json, os, secrets, signal, socket, subprocess, sys, tempfile, time, urllib.error, urllib.request
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-BIN = sys.argv[1]
+BIN = os.path.abspath(sys.argv[1])
 CUST = os.path.join(HERE, "customer")
 checks = []
 

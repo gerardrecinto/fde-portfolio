@@ -15,7 +15,10 @@ jobs:
       - uses: actions/setup-python@v5
         with: {python-version: "3.13"}
       - name: Run the customer demo and keep the output
-        run: bash demo/run.sh | tee demo/output.txt
+        shell: bash
+        run: |
+          set -o pipefail
+          bash demo/run.sh | tee demo/output.txt
       - run: python3 scripts/build_site.py demo/output.txt
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3

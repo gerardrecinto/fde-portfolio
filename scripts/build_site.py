@@ -8,6 +8,9 @@ import html, pathlib, shutil, sys
 root = pathlib.Path(__file__).resolve().parent.parent
 src, out = root / "site", root / "_site"
 demo_out = pathlib.Path(sys.argv[1]).read_text() if len(sys.argv) > 1 else ""
+import re
+if len(sys.argv) > 1 and "--allow-empty" not in sys.argv and not re.search(r"ALL \d+ CHECKS PASSED\s*$", demo_out):
+    sys.exit("demo output does not end with ALL n CHECKS PASSED, refusing to build the site")
 if out.exists():
     shutil.rmtree(out)
 shutil.copytree(src, out)
