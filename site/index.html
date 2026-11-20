@@ -27,7 +27,7 @@ go run ./cmd/meshdoctor testdata/bad.yaml</code></pre>
 <p>The demo takes a made-up team that wants an AI agent kept away from production drops. It covers scoping, wiring their step names into a runbook, a dry run on their traces, a deploy, a restart that breaks a run, and recovery. It runs the real Joltrin server from a pinned commit and checks its own results.</p>
 <pre><code>git clone https://github.com/gerardrecinto/fde-portfolio && cd fde-portfolio
 bash demo/run.sh</code></pre>
-<p>Needs Go and Python 3. The first run builds the server and takes a couple of minutes. After that it takes seconds. <a href="demo.html">See the output and how to verify it.</a></p>
+<p>Needs Go and Python 3. The first run builds the server and takes about a minute (24 seconds on a GitHub runner, 76 on my laptop). After that it takes seconds. <a href="demo.html">See the output and how to verify it.</a></p>
 
 <h2>What is real and what is simulated</h2>
 <div class="note"><p><span class="tag real">Real</span> The code, the commits and pull requests I link, the test and CI results, and everything the demo's server prints.</p>

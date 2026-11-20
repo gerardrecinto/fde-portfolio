@@ -14,7 +14,7 @@ cd fde-portfolio
 bash demo/run.sh
 ```
 
-The first run builds the Joltrin barrier server from a pinned commit, which takes a couple of minutes. After that it takes seconds. It ends with `ALL 15 CHECKS PASSED`, or exits 1 and names the check that failed. To use a server you already have, set `SOP_MCP_SERVER=/path/to/sop-mcp-server`.
+The first run builds the Joltrin barrier server from a pinned commit, which took 24 seconds on a GitHub runner and 76 on my laptop. After that it takes seconds. It ends with `ALL 15 CHECKS PASSED`, or exits 1 and names the check that failed. To use a server you already have, set `SOP_MCP_SERVER=/path/to/sop-mcp-server`.
 
 The demo takes a made-up team that wants an AI agent kept away from production drops through scoping, a runbook built from their step names, a dry run on their traces, an enforced deploy, a restart that breaks a run, and recovery.
 
